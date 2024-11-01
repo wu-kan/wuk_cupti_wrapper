@@ -23,3 +23,7 @@ target_link_libraries(${PROJECT_NAME} CUDA::cuda_driver CUDA::cupti_static
                       CUDA::nvperf_host_static -lutil)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/wuk TYPE INCLUDE)
+
+include(CTest)
+
+add_subdirectory(test)
