@@ -48,25 +48,28 @@ int main() {
   CUDA_SAFE_CALL(cuInit(0));
   CUDA_SAFE_CALL(cuDeviceGet(&device, 0));
   CUDA_SAFE_CALL(cuCtxCreate(&context, 0, device));
-
-  // https://docs.nvidia.com/cupti/main/main.html#metrics-mapping-table
-  std::vector<std::string> metricNames{"sm__cycles_elapsed.sum",
-                                       "sm__cycles_active.sum"};
-  wuk::Profiler::init();
-  wuk::Profiler p(metricNames);
-  StupidTester<int> kernel0;
-  StupidTester<float> kernel1;
-  auto reset = [&] {
-    kernel0.reset();
-    kernel1.reset();
-  };
-  auto run = [&] {
-    kernel0.run();
-    kernel1.run();
-  };
-  p.ProfileKernels("RangeName", reset, run);
-  auto res = p.MetricValuesToJSON(metricNames);
-  std::fprintf(stdout, "%s", res.c_str());
-  wuk::Profiler::deinit();
-  // CUDA_SAFE_CALL(cuCtxDestory(context));
+  do {
+    StupidTester<int> kernel0;
+    StupidTester<float> kernel1;
+    auto reset = [&] {
+      kernel0.reset();
+      kernel1.reset();
+    };
+    auto run = [&] {
+      kernel0.run();
+      kernel1.run();
+    };
+    wuk::CuProfiler::init();
+    do {
+      // https://docs.nvidia.com/cupti/main/main.html#metrics-mapping-table
+      std::vector<std::string> metricNames{"sm__cycles_elapsed.sum",
+                                           "sm__cycles_active.sum"};
+      wuk::CuProfiler p(metricNames);
+      p.ProfileKernels("range_name", reset, run);
+      auto res = p.MetricValuesToJSON(metricNames);
+      std::fprintf(stdout, "%s", res.c_str());
+    } while (0);
+    wuk::CuProfiler::deinit();
+  } while (0);
+  CUDA_SAFE_CALL(cuCtxDestroy(context));
 }

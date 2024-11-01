@@ -8,7 +8,7 @@ namespace wuk {
 
 // Per-device configuration, buffers, stream and device information, and device
 // pointers.
-struct Profiler {
+struct CuProfiler {
   // Each device (or each context) needs its own CUPTI profiling config.
   CUcontext ctx;
   // Profiling data images.
@@ -52,8 +52,9 @@ struct Profiler {
     ProfilingConfig();
   } config;
 
-  Profiler(std::vector<std::string> const &MetricNames,
-           const Profiler::ProfilingConfig &cfg = Profiler::ProfilingConfig());
+  CuProfiler(
+      std::vector<std::string> const &MetricNames,
+      const CuProfiler::ProfilingConfig &cfg = CuProfiler::ProfilingConfig());
   void ProfileKernels(char const *const RangeName,
                       const std::function<void()> &reset,
                       const std::function<void()> &kernel);

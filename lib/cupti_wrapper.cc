@@ -38,10 +38,10 @@
 
 namespace wuk {
 
-Profiler::ProfilingConfig::ProfilingConfig() {}
+CuProfiler::ProfilingConfig::ProfilingConfig() {}
 
 // Call any needed initialization routines for host or target.
-void Profiler::init() {
+void CuProfiler::init() {
   // CUPTI Profiler API initialization.
   CUpti_Profiler_Initialize_Params profilerInitializeParams = {
       CUpti_Profiler_Initialize_Params_STRUCT_SIZE};
@@ -53,13 +53,17 @@ void Profiler::init() {
   NVPW_API_CALL(NVPW_InitializeHost(&initializeHostParams));
 }
 
-void Profiler::deinit() {}
+void CuProfiler::deinit() {
+  CUpti_Profiler_DeInitialize_Params profilerDeInitializeParams = {
+      CUpti_Profiler_DeInitialize_Params_STRUCT_SIZE};
+  CUPTI_API_CALL(cuptiProfilerDeInitialize(&profilerDeInitializeParams));
+}
 
-Profiler::Profiler(std::vector<std::string> const &MetricNames,
-                   const Profiler::ProfilingConfig &cfg)
+CuProfiler::CuProfiler(std::vector<std::string> const &MetricNames,
+                   const CuProfiler::ProfilingConfig &cfg)
     : config(cfg) {
 
-  Profiler &deviceData = *this;
+  CuProfiler &deviceData = *this;
 
   DRIVER_API_CALL(cuCtxGetCurrent(&ctx));
 
@@ -178,7 +182,7 @@ Profiler::Profiler(std::vector<std::string> const &MetricNames,
 // The device streams vector is used to control which stream each call is made
 // on. If 'serial' is non-zero, the device streams are ignored and instead the
 // default stream is used.
-void Profiler::ProfileKernels(char const *const RangeName,
+void CuProfiler::ProfileKernels(char const *const RangeName,
                               const std::function<void()> &reset,
                               const std::function<void()> &kernel) {
 
@@ -302,7 +306,7 @@ void Profiler::ProfileKernels(char const *const RangeName,
 }
 
 std::string
-Profiler::MetricValuesToJSON(const std::vector<std::string> &metricNames,
+CuProfiler::MetricValuesToJSON(const std::vector<std::string> &metricNames,
                              const uint8_t *pCounterAvailabilityImage) const {
   std::string ret = "[", chipName = pChipName;
   if (!counterDataImage.size()) {
