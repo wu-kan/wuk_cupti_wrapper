@@ -47,10 +47,11 @@ template <typename T> struct StupidTester {
 
 int main() {
   CUdevice device;
-  CUcontext context;
+  CUcontext ctx;
   CUDA_SAFE_CALL(cuInit(0));
   CUDA_SAFE_CALL(cuDeviceGet(&device, 0));
-  CUDA_SAFE_CALL(cuCtxCreate(&context, 0, device));
+  CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, device));
+  CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
   do {
     StupidTester<int> kernel0;
     StupidTester<float> kernel1;
@@ -67,14 +68,19 @@ int main() {
       // https://docs.nvidia.com/cupti/main/main.html#metrics-mapping-table
       std::vector<std::string> metricNames{"sm__cycles_elapsed.sum",
                                            "sm__cycles_active.sum"};
+#if 0
       wuk::CuProfiler::ProfilingConfig cfg;
       cfg.maxRangeNameLength = 16; // the max length of "range_name"
       wuk::CuProfiler p(metricNames, cfg);
+#else
+      wuk::CuProfiler p(metricNames);
+#endif
       p.ProfileKernels("range_name", reset, run);
       auto res = p.MetricValuesToJSON(metricNames);
       std::fprintf(stdout, "%s", res.c_str());
     } while (0);
     wuk::CuProfiler::deinit();
   } while (0);
-  CUDA_SAFE_CALL(cuCtxDestroy(context));
+  CUDA_SAFE_CALL(cuCtxPopCurrent(&ctx));
+  CUDA_SAFE_CALL(cuDevicePrimaryCtxRelease(device));
 }
