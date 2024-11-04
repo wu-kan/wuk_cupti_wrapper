@@ -4,7 +4,7 @@
 template <typename T> __global__ void stupid_kernel(T *x, size_t n) {
   for (size_t i = blockDim.x * blockIdx.x + threadIdx.x; i < n;
        i += blockDim.x * gridDim.x) {
-    x[i] = 0;
+    ++x[i];
   }
 }
 
@@ -24,20 +24,23 @@ template <typename T> __global__ void stupid_kernel(T *x, size_t n) {
   } while (0)
 
 template <typename T> struct StupidTester {
-  T *x;
+  CUdeviceptr x;
   size_t n;
   CUstream s;
   StupidTester(size_t num = 1 << 20) : n(num) {
     CUDA_SAFE_CALL(cuStreamCreate(&s, CU_STREAM_NON_BLOCKING));
-    CUDA_SAFE_CALL(cuMemAlloc((CUdeviceptr *)&x, n * sizeof(T)));
+    CUDA_SAFE_CALL(cuMemAlloc(&x, sizeof(T) * n));
   }
-  void reset() { CUDA_SAFE_CALL(cuStreamSynchronize(s)); }
+  void reset() {
+    CUDA_SAFE_CALL(cuMemsetD8Async(x, 0, sizeof(T) * n, s));
+    CUDA_SAFE_CALL(cuStreamSynchronize(s));
+  }
   void run() {
-    stupid_kernel<T><<<(n + 255) / 256, 256, 0, s>>>(x, n);
+    stupid_kernel<T><<<(n + 255) / 256, 256, 0, s>>>((T *)x, n);
     CUDA_SAFE_CALL(cuStreamSynchronize(s));
   }
   ~StupidTester() {
-    CUDA_SAFE_CALL(cuMemFree((CUdeviceptr)x));
+    CUDA_SAFE_CALL(cuMemFree(x));
     CUDA_SAFE_CALL(cuStreamDestroy(s));
   }
 };
