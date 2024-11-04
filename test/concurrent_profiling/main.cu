@@ -4,7 +4,7 @@
 template <typename T> __global__ void stupid_kernel(T *x, size_t n) {
   for (size_t i = blockDim.x * blockIdx.x + threadIdx.x; i < n;
        i += blockDim.x * gridDim.x) {
-    ++x[i];
+    x[i] += 1;
   }
 }
 
