@@ -18,7 +18,7 @@ struct CuProfiler {
   std::vector<uint8_t> configImage;
 
   // String name of target compute device, needed for NVPW calls.
-  char const *pChipName;
+  std::string pChipName;
 
   struct ProfilingConfig {
 

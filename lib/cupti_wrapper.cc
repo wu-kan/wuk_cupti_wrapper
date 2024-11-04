@@ -60,7 +60,7 @@ void CuProfiler::deinit() {
 }
 
 CuProfiler::CuProfiler(std::vector<std::string> const &MetricNames,
-                   const CuProfiler::ProfilingConfig &cfg)
+                       const CuProfiler::ProfilingConfig &cfg)
     : config(cfg) {
 
   CuProfiler &deviceData = *this;
@@ -94,11 +94,11 @@ CuProfiler::CuProfiler(std::vector<std::string> const &MetricNames,
   DRIVER_API_CALL(cuCtxGetDevice(&device));
   getChipNameParams.deviceIndex = device;
   CUPTI_API_CALL(cuptiDeviceGetChipName(&getChipNameParams));
-  deviceData.pChipName = strdup(getChipNameParams.pChipName);
+  deviceData.pChipName = std::string(getChipNameParams.pChipName);
 
   // Fill in configImage - can be run on host or target.
-  if (!NV::Metric::Config::GetConfigImage(deviceData.pChipName, MetricNames,
-                                          deviceData.configImage,
+  if (!NV::Metric::Config::GetConfigImage(deviceData.pChipName.c_str(),
+                                          MetricNames, deviceData.configImage,
                                           counterAvailabilityImage.data())) {
     std::fprintf(stderr, "Failed to create configImage\n");
     std::exit(EXIT_FAILURE);
@@ -106,8 +106,8 @@ CuProfiler::CuProfiler(std::vector<std::string> const &MetricNames,
 
   // Fill in counterDataPrefixImage - can be run on host or target.
   if (!NV::Metric::Config::GetCounterDataPrefixImage(
-          deviceData.pChipName, MetricNames, deviceData.counterDataPrefixImage,
-          counterAvailabilityImage.data())) {
+          deviceData.pChipName.c_str(), MetricNames,
+          deviceData.counterDataPrefixImage, counterAvailabilityImage.data())) {
     std::fprintf(stderr, "Failed to create counterDataPrefixImage\n");
     std::exit(EXIT_FAILURE);
   }
@@ -183,8 +183,8 @@ CuProfiler::CuProfiler(std::vector<std::string> const &MetricNames,
 // on. If 'serial' is non-zero, the device streams are ignored and instead the
 // default stream is used.
 void CuProfiler::ProfileKernels(char const *const RangeName,
-                              const std::function<void()> &reset,
-                              const std::function<void()> &kernel) {
+                                const std::function<void()> &reset,
+                                const std::function<void()> &kernel) {
 
   // Start a session.
   do {
@@ -307,7 +307,7 @@ void CuProfiler::ProfileKernels(char const *const RangeName,
 
 std::string
 CuProfiler::MetricValuesToJSON(const std::vector<std::string> &metricNames,
-                             const uint8_t *pCounterAvailabilityImage) const {
+                               const uint8_t *pCounterAvailabilityImage) const {
   std::string ret = "[", chipName = pChipName;
   if (!counterDataImage.size()) {
     std::fprintf(stderr, "Counter Data Image is empty!\n");

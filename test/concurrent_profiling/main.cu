@@ -67,7 +67,9 @@ int main() {
       // https://docs.nvidia.com/cupti/main/main.html#metrics-mapping-table
       std::vector<std::string> metricNames{"sm__cycles_elapsed.sum",
                                            "sm__cycles_active.sum"};
-      wuk::CuProfiler p(metricNames);
+      wuk::CuProfiler::ProfilingConfig cfg;
+      cfg.maxRangeNameLength = 16; // the max length of "range_name"
+      wuk::CuProfiler p(metricNames, cfg);
       p.ProfileKernels("range_name", reset, run);
       auto res = p.MetricValuesToJSON(metricNames);
       std::fprintf(stdout, "%s", res.c_str());

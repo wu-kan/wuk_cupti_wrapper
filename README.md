@@ -4,7 +4,7 @@ This library provides an simple API to use [CUPTI (the CUDA Profiling Tools Inte
 
 ## Example Usage
 
-For more detials, please refer to [here](./test/concurrent_profiling/main.cu).
+For more detials, please refer to [concurrent_profiling sample](./test/concurrent_profiling/main.cu) and the [header](./include/wuk/cupti_wrapper.hh).
 
 ```cpp
 auto reset = [&] {
@@ -20,7 +20,9 @@ do {
   // https://docs.nvidia.com/cupti/main/main.html#metrics-mapping-table
   std::vector<std::string> metricNames{"sm__cycles_elapsed.sum",
                                        "sm__cycles_active.sum"};
-  wuk::CuProfiler p(metricNames);
+  wuk::CuProfiler::ProfilingConfig cfg;
+  cfg.maxRangeNameLength = 16; // the max length of "range_name"
+  wuk::CuProfiler p(metricNames, cfg);
   p.ProfileKernels("range_name", reset, run);
   auto res = p.MetricValuesToJSON(metricNames);
   std::fprintf(stdout, "%s", res.c_str());
