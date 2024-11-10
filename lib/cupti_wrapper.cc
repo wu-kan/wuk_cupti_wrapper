@@ -42,15 +42,14 @@ CuProfiler::ProfilingConfig::ProfilingConfig() {}
 
 // Call any needed initialization routines for host or target.
 void CuProfiler::init() {
+  // Generate configuration for metrics, this can also be done offline.
+  NVPW_InitializeHost_Params initializeHostParams = {
+      NVPW_InitializeHost_Params_STRUCT_SIZE};
+  NVPW_API_CALL(NVPW_InitializeHost(&initializeHostParams));
   // CUPTI Profiler API initialization.
   CUpti_Profiler_Initialize_Params profilerInitializeParams = {
       CUpti_Profiler_Initialize_Params_STRUCT_SIZE};
   CUPTI_API_CALL(cuptiProfilerInitialize(&profilerInitializeParams));
-
-  // NVPW required initialization.
-  NVPW_InitializeHost_Params initializeHostParams = {
-      NVPW_InitializeHost_Params_STRUCT_SIZE};
-  NVPW_API_CALL(NVPW_InitializeHost(&initializeHostParams));
 }
 
 void CuProfiler::deinit() {
