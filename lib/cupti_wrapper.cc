@@ -1,11 +1,11 @@
 #include "wuk/cupti_wrapper.hh"
 
 // Make use of example code wrappers for NVPW calls
-#include "Metric.h"
-#include "Parser.h"
-#include "ScopeExit.h"
-#include "Utils.h"
+#include "c_util/ScopeExit.h"
 #include "helper_cupti.h"
+#include "profilerhost_util/Metric.h"
+#include "profilerhost_util/Parser.h"
+#include "profilerhost_util/Utils.h"
 
 // CUPTI headers
 #include <cupti_profiler_target.h>

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.27)
 
 project(wuk_cupti_wrapper LANGUAGES CXX)
 
-add_library(${PROJECT_NAME} cupti_wrapper.cc extensions/src/profilerhost_util/Metric.cpp extensions/src/profilerhost_util/List.cpp extensions/src/profilerhost_util/Eval.cpp)
+add_library(${PROJECT_NAME} cupti_wrapper.cc)
 
 install(TARGETS ${PROJECT_NAME})
 
@@ -17,16 +17,14 @@ target_include_directories(
   ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 target_include_directories(
-  ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extensions/include)
-
-target_include_directories(
-  ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extensions/include/c_util)
-
-target_include_directories(
-  ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extensions/include/profilerhost_util)
-
-target_include_directories(
   ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/common)
+
+target_include_directories(
+  ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extensions/include)
 
 target_link_libraries(${PROJECT_NAME} CUDA::cuda_driver CUDA::cupti_static
                       CUDA::nvperf_host_static -lutil)
+
+add_subdirectory(extensions)
+
+target_link_libraries(${PROJECT_NAME} wuk_cupti_wrapper_ensions)
