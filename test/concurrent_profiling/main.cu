@@ -1,4 +1,5 @@
 #include <cuda.h>
+#include <string>
 #include <wuk/cupti_wrapper.hh>
 
 template <typename T> __global__ void stupid_kernel(T *x, size_t n) {
@@ -76,7 +77,8 @@ int main() {
       wuk::CuProfiler p(metricNames);
 #endif
       p.ProfileKernels("range_name", reset, run);
-      auto res = p.MetricValuesToJSON(metricNames);
+      std::string res =
+          wuk::CuProfiler::res_to_json(p.MetricValues(metricNames));
       std::fprintf(stdout, "%s", res.c_str());
     } while (0);
     wuk::CuProfiler::deinit();

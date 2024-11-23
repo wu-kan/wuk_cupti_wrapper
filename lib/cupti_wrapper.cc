@@ -39,6 +39,26 @@ namespace wuk {
 
 CuProfiler::ProfilingConfig::ProfilingConfig() {}
 
+std::string CuProfiler::res_to_json(
+    const std::vector<
+        std::pair<std::string, std::vector<std::pair<std::string, double>>>>
+        &lhs) {
+  std::string ret = "[";
+  for (const auto &it : lhs) {
+    ret += "{\"Metrics\": {";
+    for (const auto &jt : it.second) {
+      ret += "\"" + jt.first + "\": " + std::to_string(jt.second) + ",";
+    }
+    if (ret.back() == ',')
+      ret.pop_back();
+    ret += "}, \"RangeName\": \"" + it.first + "\"},";
+  }
+  if (ret.back() == ',')
+    ret.pop_back();
+  ret += "]";
+  return ret;
+}
+
 // Call any needed initialization routines for host or target.
 void CuProfiler::init() {
   // Generate configuration for metrics, this can also be done offline.
@@ -303,10 +323,13 @@ void CuProfiler::ProfileKernels(char const *const RangeName,
   } while (0);
 }
 
-std::string
-CuProfiler::MetricValuesToJSON(const std::vector<std::string> &metricNames,
-                               const uint8_t *pCounterAvailabilityImage) const {
-  std::string ret = "[", chipName = pChipName;
+std::vector<std::pair<std::string, std::vector<std::pair<std::string, double>>>>
+CuProfiler::MetricValues(const std::vector<std::string> &metricNames,
+                         const uint8_t *pCounterAvailabilityImage) const {
+  std::vector<
+      std::pair<std::string, std::vector<std::pair<std::string, double>>>>
+      ret;
+  std::string chipName = pChipName;
   if (!counterDataImage.size()) {
     std::fprintf(stderr, "Counter Data Image is empty!\n");
     std::exit(-1);
@@ -377,8 +400,8 @@ CuProfiler::MetricValuesToJSON(const std::vector<std::string> &metricNames,
       EXIT_IF_NVPW_ERROR(false, NVPW_MetricsEvaluator_SetDeviceAttributes(
                                     &setDeviceAttribParams));
     } while (0);
-    ret += "{\"Metrics\": {";
-    for (std::string metricName : metricNames) {
+    std::vector<std::pair<std::string, double>> mets;
+    for (const std::string &metricName : metricNames) {
       std::string reqName;
       bool isolated = true;
       bool keepInstances = true;
@@ -416,17 +439,10 @@ CuProfiler::MetricValuesToJSON(const std::vector<std::string> &metricNames,
       evaluateToGpuValuesParams.pMetricValues = &metricValue;
       EXIT_IF_NVPW_ERROR(false, NVPW_MetricsEvaluator_EvaluateToGpuValues(
                                     &evaluateToGpuValuesParams));
-
-      ret +=
-          "\"" + metricName + "\"" + ": " + std::to_string(metricValue) + ",";
+      mets.emplace_back(metricName, metricValue);
     }
-    if (ret.back() == ',')
-      ret.pop_back();
-    ret += "}, \"RangeName\": \"" + rangeName + "\"" + "},";
+    ret.emplace_back(rangeName, mets);
   }
-  if (ret.back() == ',')
-    ret.pop_back();
-  ret += "]";
 
   NVPW_MetricsEvaluator_Destroy_Params metricEvaluatorDestroyParams = {
       NVPW_MetricsEvaluator_Destroy_Params_STRUCT_SIZE};

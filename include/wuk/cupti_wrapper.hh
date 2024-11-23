@@ -58,9 +58,14 @@ struct CuProfiler {
   void ProfileKernels(char const *const RangeName,
                       const std::function<void()> &reset,
                       const std::function<void()> &kernel);
-  std::string
-  MetricValuesToJSON(const std::vector<std::string> &metricNames,
-                     const uint8_t *pCounterAvailabilityImage = nullptr) const;
+  std::vector<
+      std::pair<std::string, std::vector<std::pair<std::string, double>>>>
+  MetricValues(const std::vector<std::string> &metricNames,
+               const uint8_t *pCounterAvailabilityImage = nullptr) const;
+  static std::string res_to_json(
+      const std::vector<
+          std::pair<std::string, std::vector<std::pair<std::string, double>>>>
+          &lhs);
   static void init();
   static void deinit();
 };
