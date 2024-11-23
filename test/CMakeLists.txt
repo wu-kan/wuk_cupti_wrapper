@@ -1,2 +1,1 @@
 add_subdirectory(concurrent_profiling)
-add_subdirectory(range_profiling)
