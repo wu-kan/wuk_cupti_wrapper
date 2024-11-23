@@ -3,6 +3,7 @@
 #include <Utils.h>
 #include <nvperf_host.h>
 #include <nvperf_cuda_host.h>
+#include <iostream>
 #include <ScopeExit.h>
 
 namespace NV {

@@ -16,10 +16,7 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <iostream>
 
 #ifndef EXIT_WAIVED
 #define EXIT_WAIVED 2
@@ -40,8 +37,9 @@ do                                                                              
         const char *pErrorString;                                                   \
         cuGetErrorString(_status, &pErrorString);                                   \
                                                                                     \
-        fprintf(stderr, "%s:%d: Error: Function %s failed with error (%d): %s.\n",  \
-                __FILE__, __LINE__, #apiFunctionCall, _status, pErrorString);       \
+        std::cerr << "\n\nError:" << __FILE__ << ":" << __LINE__ << ": Function "   \
+        << #apiFunctionCall << " failed with error(" << _status << "): "            \
+        << pErrorString << ".\n\n";                                                 \
                                                                                     \
         exit(EXIT_FAILURE);                                                         \
     }                                                                               \
@@ -53,9 +51,9 @@ do                                                                              
     cudaError_t _status = apiFunctionCall;                                          \
     if (_status != cudaSuccess)                                                     \
     {                                                                               \
-        fprintf(stderr, "%s:%d: Error: Function %s failed with error (%d): %s.\n",  \
-                __FILE__, __LINE__, #apiFunctionCall, _status,                      \
-                cudaGetErrorString(_status));                                       \
+        std::cerr << "\n\nError:" << __FILE__ << ":" << __LINE__ << ": Function "   \
+        << #apiFunctionCall << " failed with error(" << _status << "): "            \
+        << cudaGetErrorString(_status) << ".\n\n";                                  \
                                                                                     \
         exit(EXIT_FAILURE);                                                         \
     }                                                                               \
@@ -70,8 +68,28 @@ do                                                                              
         const char *pErrorString;                                                   \
         cuptiGetResultString(_status, &pErrorString);                               \
                                                                                     \
-        fprintf(stderr, "%s:%d: Error: Function %s failed with error (%d): %s.\n",  \
-                __FILE__, __LINE__, #apiFunctionCall, _status, pErrorString);       \
+        std::cerr << "\n\nError:" << __FILE__ << ":" << __LINE__ << ": Function "   \
+        << #apiFunctionCall << " failed with error(" << _status << "): "            \
+        << pErrorString << ".\n\n";                                                 \
+                                                                                    \
+        exit(EXIT_FAILURE);                                                         \
+    }                                                                               \
+} while (0)
+
+#define CUPTI_API_CALL_VERBOSE(apiFunctionCall)                                     \
+do                                                                                  \
+{                                                                                   \
+    std::cout << "Calling CUPTI API: " << #apiFunctionCall << "\n";                 \
+                                                                                    \
+    CUptiResult _status = apiFunctionCall;                                          \
+    if (_status != CUPTI_SUCCESS)                                                   \
+    {                                                                               \
+        const char *pErrorString;                                                   \
+        cuptiGetResultString(_status, &pErrorString);                               \
+                                                                                    \
+        std::cerr << "\n\nError:" << __FILE__ << ":" << __LINE__ << ": Function "   \
+        << #apiFunctionCall << " failed with error(" << _status << "): "            \
+        << pErrorString << ".\n\n";                                                 \
                                                                                     \
         exit(EXIT_FAILURE);                                                         \
     }                                                                               \
@@ -83,8 +101,8 @@ do                                                                              
     CUptiUtilResult _status = apiFunctionCall;                                      \
     if (_status != CUPTI_UTIL_SUCCESS)                                              \
     {                                                                               \
-        fprintf(stderr, "%s:%d: Error: function %s failed with error %d.\n",        \
-                __FILE__, __LINE__, #apiFunctionCall, _status);                     \
+        std::cerr << "\n\nError:" << __FILE__ << ":" << __LINE__ << ": Function "   \
+        << #apiFunctionCall << " failed with error: " << _status << "\n\n";         \
                                                                                     \
         exit(EXIT_FAILURE);                                                         \
     }                                                                               \
@@ -96,8 +114,8 @@ do                                                                              
     NVPA_Status _status = apiFunctionCall;                                          \
     if (_status != NVPA_STATUS_SUCCESS)                                             \
     {                                                                               \
-        fprintf(stderr, "%s:%d: Error: Function %s failed with error: %d.\n",       \
-                __FILE__, __LINE__, #apiFunctionCall, _status);                     \
+        std::cerr << "\n\nError:" << __FILE__ << ":" << __LINE__ << ": Function "   \
+        << #apiFunctionCall << " failed with error: " << _status << "\n\n";         \
                                                                                     \
         exit(EXIT_FAILURE);                                                         \
     }                                                                               \
@@ -108,8 +126,8 @@ do                                                                              
 {                                                                                   \
     if (variable == NULL)                                                           \
     {                                                                               \
-        fprintf(stderr, "%s:%d: Error: Memory allocation failed.\n",                \
-                __FILE__, __LINE__);                                                \
+        std::cerr << "\n\nError:" << __FILE__ << ":" << __LINE__ <<                 \
+        " Memory allocation failed.\n\n";                                           \
                                                                                     \
         exit(EXIT_FAILURE);                                                         \
     }                                                                               \
@@ -120,12 +138,26 @@ do                                                                              
 {                                                                                   \
     if (!(condition))                                                               \
     {                                                                               \
-        fprintf(stderr, "%s:%d: Error: Condition " #condition " failed.\n",         \
-                __FILE__, __LINE__);                                                \
+        std::cerr << "\n\nError:" << __FILE__ << ":" << __LINE__ << ": Condition "  \
+        << #condition << " failed.\n\n";                                            \
                                                                                     \
         exit(EXIT_FAILURE);                                                         \
     }                                                                               \
-} while(0)
+} while (0)
+
+#define CHECK_INTEGER_CONDITION(argument1, operator, argument2)                     \
+do                                                                                  \
+{                                                                                   \
+    if (!(argument1 operator argument2))                                            \
+    {                                                                               \
+        std::cerr << "\n\nError:" << __FILE__ << ":" << __LINE__ << ": Condition "  \
+        << #argument1 << " " << #operator << " " << #argument2 << " fails. " <<     \
+        #argument1 << " = " << argument1 << ", " << #argument2 << " = " <<          \
+        argument2 << "\n\n";                                                        \
+                                                                                    \
+        exit(EXIT_FAILURE);                                                         \
+    }                                                                               \
+} while (0)
 
 #endif // HELPER_CUPTI_H_
 

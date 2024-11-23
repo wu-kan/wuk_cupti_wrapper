@@ -3,10 +3,10 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+
 namespace NV {
     namespace Metric {
         namespace Config {
-            using std::uint8_t;
             /* Function to get Config image
             * @param[in]  chipName                          Chip name for which configImage is to be generated
             * @param[in]  metricNames                       List of metrics for which configImage is to be generated

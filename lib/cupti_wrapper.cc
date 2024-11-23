@@ -5,12 +5,11 @@
 #include "Parser.h"
 #include "ScopeExit.h"
 #include "Utils.h"
+#include "helper_cupti.h"
 
 // CUPTI headers
 #include <cupti_profiler_target.h>
 #include <cupti_target.h>
-
-#include "helper_cupti.h"
 
 #include <nvperf_cuda_host.h>
 #include <nvperf_host.h>
@@ -18,10 +17,10 @@
 
 // CUDA headers
 #include <cuda.h>
-#include <driver_types.h>
 
 // Standard STL headers
 #include <cstdio>
+#include <cstring>
 #include <functional>
 #include <string>
 #include <vector>
@@ -246,7 +245,7 @@ void CuProfiler::ProfileKernels(char const *const RangeName,
           CUpti_Profiler_PushRange_Params_STRUCT_SIZE};
       pushRangeParams.ctx = ctx;
       pushRangeParams.pRangeName = RangeName;
-      pushRangeParams.rangeNameLength = strlen(RangeName);
+      pushRangeParams.rangeNameLength = std::strlen(RangeName);
       CUPTI_API_CALL(cuptiProfilerPushRange(&pushRangeParams));
     } while (0);
 
