@@ -8,14 +8,14 @@ For more detials, please refer to [concurrent_profiling sample](./test/concurren
 
 ```cpp
 auto reset = [&] {
-  kernel0.reset();
-  kernel1.reset();
+  workload0.reset();
+  workload1.reset();
 };
 auto run = [&] {
-  kernel0.run_async();
-  kernel1.run_async();
-  kernel0.sync();
-  kernel1.sync();
+  workload0.run_async();
+  workload1.run_async();
+  workload0.sync();
+  workload1.sync();
 };
 wuk::CuProfiler::init();
 do {

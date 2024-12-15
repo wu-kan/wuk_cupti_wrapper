@@ -10,7 +10,7 @@ template <typename T> __global__ void stupid_kernel(T *x, size_t n) {
   }
 }
 
-#define CUDA_SAFE_CALL(x)                                                      \
+#define DRIVER_API_CALL(x)                                                     \
   do {                                                                         \
     CUresult result = x;                                                       \
     if (result != CUDA_SUCCESS) {                                              \
@@ -33,43 +33,43 @@ private:
 
 public:
   StupidWordload(size_t num = 1 << 20) : n(num) {
-    CUDA_SAFE_CALL(cuStreamCreate(&s, CU_STREAM_NON_BLOCKING));
-    CUDA_SAFE_CALL(cuMemAllocAsync(&x, sizeof(T) * n, s));
+    DRIVER_API_CALL(cuStreamCreate(&s, CU_STREAM_NON_BLOCKING));
+    DRIVER_API_CALL(cuMemAllocAsync(&x, sizeof(T) * n, s));
   }
-  void sync() { CUDA_SAFE_CALL(cuStreamSynchronize(s)); }
+  void sync() { DRIVER_API_CALL(cuStreamSynchronize(s)); }
   void reset() {
-    CUDA_SAFE_CALL(cuMemsetD8Async(x, 0, sizeof(T) * n, s));
+    DRIVER_API_CALL(cuMemsetD8Async(x, 0, sizeof(T) * n, s));
     sync();
   }
   void run_async() {
     stupid_kernel<T><<<(n + 255) / 256, 256, 0, s>>>((T *)x, n);
   }
   ~StupidWordload() {
-    CUDA_SAFE_CALL(cuMemFreeAsync(x, s));
+    DRIVER_API_CALL(cuMemFreeAsync(x, s));
     sync();
-    CUDA_SAFE_CALL(cuStreamDestroy(s));
+    DRIVER_API_CALL(cuStreamDestroy(s));
   }
 };
 
 int main() {
   CUdevice device;
   CUcontext ctx;
-  CUDA_SAFE_CALL(cuInit(0));
-  CUDA_SAFE_CALL(cuDeviceGet(&device, 0));
-  CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, device));
-  CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
+  DRIVER_API_CALL(cuInit(0));
+  DRIVER_API_CALL(cuDeviceGet(&device, 0));
+  DRIVER_API_CALL(cuDevicePrimaryCtxRetain(&ctx, device));
+  DRIVER_API_CALL(cuCtxPushCurrent(ctx));
   do {
-    StupidWordload<int> kernel0;
-    StupidWordload<float> kernel1;
+    StupidWordload<int> workload0;
+    StupidWordload<float> workload1;
     auto reset = [&] {
-      kernel0.reset();
-      kernel1.reset();
+      workload0.reset();
+      workload1.reset();
     };
     auto run = [&] {
-      kernel0.run_async();
-      kernel1.run_async();
-      kernel0.sync();
-      kernel1.sync();
+      workload0.run_async();
+      workload1.run_async();
+      workload0.sync();
+      workload1.sync();
     };
     wuk::CuProfiler::init();
     do {
@@ -90,6 +90,6 @@ int main() {
     } while (0);
     wuk::CuProfiler::deinit();
   } while (0);
-  CUDA_SAFE_CALL(cuCtxPopCurrent(&ctx));
-  CUDA_SAFE_CALL(cuDevicePrimaryCtxRelease(device));
+  DRIVER_API_CALL(cuCtxPopCurrent(&ctx));
+  DRIVER_API_CALL(cuDevicePrimaryCtxRelease(device));
 }

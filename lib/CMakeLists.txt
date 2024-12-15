@@ -25,7 +25,7 @@ target_include_directories(
   ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extensions/include)
 
 target_link_libraries(${PROJECT_NAME} CUDA::cuda_driver CUDA::cupti_static
-                      CUDA::nvperf_host_static -lutil)
+                      CUDA::nvperf_host_static)
 
 add_subdirectory(extensions)
 
