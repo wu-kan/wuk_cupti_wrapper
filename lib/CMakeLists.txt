@@ -6,6 +6,8 @@ add_library(${PROJECT_NAME} cupti_wrapper.cc)
 
 install(TARGETS ${PROJECT_NAME})
 
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../include/wuk TYPE INCLUDE)
+
 find_package(CUDAToolkit REQUIRED)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CUDAToolkit_INCLUDE_DIRS})

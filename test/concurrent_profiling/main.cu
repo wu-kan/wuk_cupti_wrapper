@@ -1,9 +1,10 @@
+#include <cstddef>
 #include <cuda.h>
 #include <string>
 #include <wuk/cupti_wrapper.hh>
 
 template <typename T> __global__ void stupid_kernel(T *x, size_t n) {
-  for (size_t i = blockDim.x * blockIdx.x + threadIdx.x; i < n;
+  for (size_t i = blockDim.x * (size_t)blockIdx.x + threadIdx.x; i < n;
        i += blockDim.x * gridDim.x) {
     x[i] += 1;
   }
@@ -24,24 +25,28 @@ template <typename T> __global__ void stupid_kernel(T *x, size_t n) {
     }                                                                          \
   } while (0)
 
-template <typename T> struct StupidTester {
+template <typename T> class StupidWordload {
+private:
   CUdeviceptr x;
   size_t n;
   CUstream s;
-  StupidTester(size_t num = 1 << 20) : n(num) {
+
+public:
+  StupidWordload(size_t num = 1 << 20) : n(num) {
     CUDA_SAFE_CALL(cuStreamCreate(&s, CU_STREAM_NON_BLOCKING));
-    CUDA_SAFE_CALL(cuMemAlloc(&x, sizeof(T) * n));
+    CUDA_SAFE_CALL(cuMemAllocAsync(&x, sizeof(T) * n, s));
   }
+  void sync() { CUDA_SAFE_CALL(cuStreamSynchronize(s)); }
   void reset() {
     CUDA_SAFE_CALL(cuMemsetD8Async(x, 0, sizeof(T) * n, s));
-    CUDA_SAFE_CALL(cuStreamSynchronize(s));
+    sync();
   }
-  void run() {
+  void run_async() {
     stupid_kernel<T><<<(n + 255) / 256, 256, 0, s>>>((T *)x, n);
-    CUDA_SAFE_CALL(cuStreamSynchronize(s));
   }
-  ~StupidTester() {
-    CUDA_SAFE_CALL(cuMemFree(x));
+  ~StupidWordload() {
+    CUDA_SAFE_CALL(cuMemFreeAsync(x, s));
+    sync();
     CUDA_SAFE_CALL(cuStreamDestroy(s));
   }
 };
@@ -54,15 +59,17 @@ int main() {
   CUDA_SAFE_CALL(cuDevicePrimaryCtxRetain(&ctx, device));
   CUDA_SAFE_CALL(cuCtxPushCurrent(ctx));
   do {
-    StupidTester<int> kernel0;
-    StupidTester<float> kernel1;
+    StupidWordload<int> kernel0;
+    StupidWordload<float> kernel1;
     auto reset = [&] {
       kernel0.reset();
       kernel1.reset();
     };
     auto run = [&] {
-      kernel0.run();
-      kernel1.run();
+      kernel0.run_async();
+      kernel1.run_async();
+      kernel0.sync();
+      kernel1.sync();
     };
     wuk::CuProfiler::init();
     do {

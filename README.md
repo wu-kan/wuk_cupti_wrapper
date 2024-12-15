@@ -12,8 +12,10 @@ auto reset = [&] {
   kernel1.reset();
 };
 auto run = [&] {
-  kernel0.run();
-  kernel1.run();
+  kernel0.run_async();
+  kernel1.run_async();
+  kernel0.sync();
+  kernel1.sync();
 };
 wuk::CuProfiler::init();
 do {

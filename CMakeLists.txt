@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.27)
 
-project(wuk_cupti_wrapper LANGUAGES CXX)
-
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/wuk TYPE INCLUDE)
+project(wuk_cupti_wrapper)
 
 add_subdirectory(lib)
 
