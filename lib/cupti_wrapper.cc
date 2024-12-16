@@ -31,7 +31,7 @@
     if (NVPA_STATUS_SUCCESS != status) {                                       \
       std::fprintf(stderr, "FAILED: %s with error %s\n", #actual,              \
                    NV::Metric::Utils::GetNVPWResultString(status));            \
-      std::exit(-1);                                                           \
+      std::exit(EXIT_FAILURE);                                                 \
     }                                                                          \
   } while (0)
 
@@ -332,7 +332,7 @@ CuProfiler::MetricValues(const std::vector<std::string> &metricNames,
   std::string chipName = pChipName;
   if (!counterDataImage.size()) {
     std::fprintf(stderr, "Counter Data Image is empty!\n");
-    std::exit(-1);
+    std::exit(EXIT_FAILURE);
   }
 
   NVPW_CUDA_MetricsEvaluator_CalculateScratchBufferSize_Params
