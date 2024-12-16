@@ -1,6 +1,6 @@
 # wuk_cupti_wrapper
 
-This library provides an simple API to use [CUPTI (the CUDA Profiling Tools Interface)](https://docs.nvidia.com/cupti/index.html). The code is mainly modified from the cupti sample [concurrent_profiling](https://github.com/mmcloughlin/cuptisamples/blob/main/samples/concurrent_profiling/concurrent_profiling.cu).
+This library provides an simple API to use [CUPTI (the CUDA Profiling Tools Interface)](https://docs.nvidia.com/cupti/index.html). The code is mainly modified from the cupti sample [range_profiling](https://github.com/mmcloughlin/cuptisamples/tree/main/samples/range_profiling).
 
 ## Example Usage
 
