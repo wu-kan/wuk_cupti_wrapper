@@ -71,24 +71,15 @@ int main() {
       workload0.sync();
       workload1.sync();
     };
-    wuk::CuProfiler::init();
     do {
       // https://docs.nvidia.com/cupti/main/main.html#metrics-mapping-table
       std::vector<std::string> metricNames{"sm__cycles_elapsed.sum",
                                            "sm__cycles_active.sum"};
-#if 0
-      wuk::CuProfiler::ProfilingConfig cfg;
-      cfg.maxRangeNameLength = 16; // the max length of "range_name"
-      wuk::CuProfiler p(metricNames, cfg);
-#else
       wuk::CuProfiler p(metricNames);
-#endif
       p.ProfileKernels("range_name", reset, run);
-      std::string res =
-          wuk::CuProfiler::res_to_json(p.MetricValues(metricNames));
+      std::string res = wuk::CuProfiler::res_to_json(p.MetricValues());
       std::fprintf(stdout, "%s", res.c_str());
     } while (0);
-    wuk::CuProfiler::deinit();
   } while (0);
   DRIVER_API_CALL(cuCtxPopCurrent(&ctx));
   DRIVER_API_CALL(cuDevicePrimaryCtxRelease(device));

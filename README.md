@@ -17,24 +17,21 @@ auto run = [&] {
   workload0.sync();
   workload1.sync();
 };
-wuk::CuProfiler::init();
 do {
   // https://docs.nvidia.com/cupti/main/main.html#metrics-mapping-table
   std::vector<std::string> metricNames{"sm__cycles_elapsed.sum",
                                        "sm__cycles_active.sum"};
   wuk::CuProfiler p(metricNames);
   p.ProfileKernels("range_name", reset, run);
-  std::string res =
-      wuk::CuProfiler::res_to_json(p.MetricValues(metricNames));
+  std::string res = wuk::CuProfiler::res_to_json(p.MetricValues());
   std::fprintf(stdout, "%s", to_json(res).c_str());
 } while (0);
-wuk::CuProfiler::deinit();
 ```
 
 The output is a json.
 
 ```json
-[{"Metrics": {"sm__cycles_elapsed.sum": 1257716664.000000,"sm__cycles_active.sum": 907696.000000}, "RangeName": "range_name"}]
+[{"Metrics": {"sm__cycles_active.sum": 1196714.000000,"sm__cycles_elapsed.sum": 1360945416.000000},"RangeName": "range_name","RangeIndex": 0}]
 ```
 
 ## Build from Source

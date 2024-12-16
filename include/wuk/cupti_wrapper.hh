@@ -1,73 +1,48 @@
 #pragma once
-#include <cuda.h>
+#include <cupti_profiler_target.h>
 #include <functional>
+#include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace wuk {
 
-// Per-device configuration, buffers, stream and device information, and device
-// pointers.
-struct CuProfiler {
-  // Each device (or each context) needs its own CUPTI profiling config.
-  CUcontext ctx;
-  // Profiling data images.
-  std::vector<uint8_t> counterDataImage;
-  std::vector<uint8_t> counterDataPrefixImage;
-  std::vector<uint8_t> counterDataScratchBufferImage;
-  std::vector<uint8_t> configImage;
-
-  // String name of target compute device, needed for NVPW calls.
-  std::string pChipName;
-
-  struct ProfilingConfig {
-
-    // Maximum number of Ranges that may be encountered in this Session. (Nested
-    // Ranges are multiplicative.)
-    // Device 0 has max of 3 passes; other devices only run one pass in this
-    // sample code
-    // Maximum number of ranges that may be profiled in the current Session
-    int maxNumRanges = 1;
-
-    // Maximum number of kernel launches in any Pass in this Session.
-    // Must be >= maxRangesPerPass.  Set this to the largest count of kernel
-    // launches which may be encountered in any Pass in this Session.
-    int maxLaunchesPerPass = 1;
-
-    // Max length including NULL terminator of any range name.
-    int maxRangeNameLength = 64;
-
-    // Maximum number of Ranges in any Pass in this Session.
-    // Max ranges that can be recorded in any Pass in this Session.
-    int maxRangesPerPass = 1;
-
-    // Minimum level to tag a Range within this session, must be >= 1.
-    // Must be >= 1, minimum reported nest level for Ranges in this Session.
-    int minNestingLevels = 1;
-
-    // Maximum level for nested Ranges within this Session, must be >= 1.
-    // Must be >= 1, max height of nested Ranges in this Session.
-    int numNestingLevels = 1;
-
-    ProfilingConfig();
-  } config;
-
-  CuProfiler(
-      std::vector<std::string> const &MetricNames,
-      const CuProfiler::ProfilingConfig &cfg = CuProfiler::ProfilingConfig());
-  void ProfileKernels(char const *const RangeName,
-                      const std::function<void()> &reset,
-                      const std::function<void()> &kernel);
-  std::vector<
-      std::pair<std::string, std::vector<std::pair<std::string, double>>>>
-  MetricValues(const std::vector<std::string> &metricNames,
-               const uint8_t *pCounterAvailabilityImage = nullptr) const;
-  static std::string res_to_json(
-      const std::vector<
-          std::pair<std::string, std::vector<std::pair<std::string, double>>>>
-          &lhs);
-  static void init();
-  static void deinit();
+struct ProfilerRange {
+  size_t rangeIndex;
+  std::string rangeName;
+  std::unordered_map<std::string, double> metricValues;
 };
 
-}; // namespace wuk
+struct RangeProfilerConfig {
+  size_t maxNumOfRanges = 42;
+  size_t numOfNestingLevel = 1;
+  size_t minNestingLevel = 1;
+  CUpti_ProfilerRange rangeMode = CUPTI_UserRange;        // CUPTI_AutoRange,
+  CUpti_ProfilerReplayMode replayMode = CUPTI_UserReplay; // CUPTI_KernelReplay;
+};
+
+class CuptiProfilerHost;
+
+class RangeProfilerTarget;
+
+class CuProfiler {
+private:
+  std::shared_ptr<CuptiProfilerHost> pCuptiProfilerHost;
+  std::shared_ptr<RangeProfilerTarget> pRangeProfilerTarget;
+  std::vector<uint8_t> counterAvailabilityImage;
+  std::vector<uint8_t> configImage;
+  std::vector<uint8_t> counterDataImage;
+  std::vector<const char *> metricsList;
+
+public:
+  CuProfiler(const std::vector<std::string> &metricsList,
+             const RangeProfilerConfig &config = RangeProfilerConfig());
+  ~CuProfiler();
+  void ProfileKernels(const char *RangeName, const std::function<void()> &reset,
+                      const std::function<void()> &run);
+  std::vector<ProfilerRange> MetricValues();
+  static std::string res_to_json(const std::vector<ProfilerRange> &res);
+};
+
+} // namespace wuk
