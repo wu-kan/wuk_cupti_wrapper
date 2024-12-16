@@ -24,7 +24,7 @@ do {
   wuk::CuProfiler p(metricNames);
   p.ProfileKernels("range_name", reset, run);
   std::string res = wuk::CuProfiler::res_to_json(p.MetricValues());
-  std::fprintf(stdout, "%s", to_json(res).c_str());
+  std::fprintf(stdout, "%s", res.c_str());
 } while (0);
 ```
 
