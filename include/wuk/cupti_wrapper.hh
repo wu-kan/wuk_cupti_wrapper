@@ -1,5 +1,5 @@
 #pragma once
-#include <cupti_profiler_target.h>
+#include <cupti_range_profiler.h>
 #include <functional>
 #include <memory>
 #include <string>
