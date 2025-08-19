@@ -3,8 +3,6 @@
 #include <cstring>
 #include <cuda.h>
 #include <cupti_profiler_host.h>
-#include <cupti_profiler_target.h>
-#include <cupti_range_profiler.h>
 #include <cupti_target.h>
 #include <helper_cupti.h>
 
