@@ -13,15 +13,10 @@ find_package(CUDAToolkit REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
 
 target_include_directories(
-  ${PROJECT_NAME} PRIVATE ${CUDAToolkit_LIBRARY_ROOT}/extras/CUPTI/include)
-
-target_include_directories(
   ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 target_include_directories(
   ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/common)
 
-target_include_directories(
-  ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extensions/include)
 
 target_link_libraries(${PROJECT_NAME} CUDA::cuda_driver CUDA::cupti_static)
