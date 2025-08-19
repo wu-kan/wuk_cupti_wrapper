@@ -31,7 +31,7 @@ do {
 The output is a json.
 
 ```json
-[{"Metrics": {"sm__cycles_active.sum": 1196714.000000,"sm__cycles_elapsed.sum": 1360945416.000000},"RangeName": "range_name","RangeIndex": 0}]
+[{"Metrics":{"sm__cycles_active.sum":2210120.000000,"sm__cycles_elapsed.sum":1322041456.000000},"RangeName":"range_name","RangeIndex":0}]
 ```
 
 ## Build from Source

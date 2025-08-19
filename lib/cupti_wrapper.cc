@@ -13,14 +13,14 @@ namespace wuk {
 std::string CuProfiler::res_to_json(const std::vector<ProfilerRange> &lhs) {
   std::string ret = "[";
   for (const auto &it : lhs) {
-    ret += "{\"Metrics\": {";
+    ret += "{\"Metrics\":{";
     for (const auto &jt : it.metricValues) {
-      ret += "\"" + jt.first + "\": " + std::to_string(jt.second) + ",";
+      ret += "\"" + jt.first + "\":" + std::to_string(jt.second) + ",";
     }
     if (ret.back() == ',')
       ret.pop_back();
-    ret += "},\"RangeName\": \"" + it.rangeName + "\",";
-    ret += "\"RangeIndex\": " + std::to_string(it.rangeIndex) + "},";
+    ret += "},\"RangeName\":\"" + it.rangeName + "\",";
+    ret += "\"RangeIndex\":" + std::to_string(it.rangeIndex) + "},";
   }
   if (ret.back() == ',')
     ret.pop_back();
@@ -403,29 +403,33 @@ CUptiResult RangeProfilerTarget::GetCounterAvailabilityImage(
 
 CuProfiler::CuProfiler(const std::vector<std::string> &metric_list,
                        const RangeProfilerConfig &config) {
-  for (const auto &s : metric_list) {
-    auto p = (char *)malloc(sizeof(char) * (s.size() + 1));
-    std::strcpy(p, s.c_str());
-    metricsList.push_back(p);
-  }
-  CUdevice cuDevice;
   CUcontext cuContext;
-  DRIVER_API_CALL(cuDeviceGet(&cuDevice, 0));
   DRIVER_API_CALL(cuCtxGetCurrent(&cuContext));
+  CUdevice cuDevice;
+  DRIVER_API_CALL(cuCtxGetDevice(&cuDevice));
 
   pCuptiProfilerHost = std::make_shared<CuptiProfilerHost>();
 
   pRangeProfilerTarget =
       std::make_shared<RangeProfilerTarget>(cuContext, config);
 
-  // Get chip name
-  std::string chipName;
-  CUPTI_API_CALL(RangeProfilerTarget::GetChipName(cuDevice, chipName));
-
   CUPTI_API_CALL(RangeProfilerTarget::GetCounterAvailabilityImage(
       cuContext, counterAvailabilityImage));
 
-  pCuptiProfilerHost->SetUp(chipName, counterAvailabilityImage);
+  do {
+    // Get chip name
+    std::string chipName;
+    CUPTI_API_CALL(RangeProfilerTarget::GetChipName(cuDevice, chipName));
+
+    pCuptiProfilerHost->SetUp(chipName, counterAvailabilityImage);
+  } while (0);
+
+  for (const auto &s : metric_list) {
+    auto p = (char *)std::malloc(sizeof(char) * (s.size() + 1));
+    std::strcpy(p, s.c_str());
+    metricsList.push_back(p);
+  }
+
   CUPTI_API_CALL(
       pCuptiProfilerHost->CreateConfigImage(metricsList, configImage));
   CUPTI_API_CALL(pRangeProfilerTarget->EnableRangeProfiler());
